@@ -1,5 +1,25 @@
-# Docker on macOS
+# Containers on macOS
 Download and install [Docker CE](https://store.docker.com/editions/community/docker-ce-desktop-mac)
+
+---
+
+# Containers on Linux
+
+- Download and install [Docker CE](https://store.docker.com/editions/community/docker-ce-desktop-mac) OR
+- Download and install [Singularity](http://singularity.lbl.gov)
+
+---
+
+# Containers on HPC
+
+- Singularity (2.3) is installed on Storrs HPC
+- Docker typically isn't available on HPC for security reasons
+
+---
+
+# Build the Container
+
+---
 
 # Initialization and Endpoints
 
@@ -13,6 +33,7 @@ The default entrypoint executes the following
 
 The user script directory (`/bind/scripts`) is prepended to the path.
 
+---
 
 # Bind points
 Some Singularity configurations and Docker will allow arbitrary overlays or mounts, however the following points will always be available:
