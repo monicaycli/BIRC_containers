@@ -30,6 +30,8 @@ The default entrypoint executes the following
 3. If it exists, `/bind/scripts/runtime.sh` will be execed
 4. The final exec of `/bind/scripts/runtime.sh` can be overridden by passing an alternative as an argument, e.g. `docker run birc myscript.sh`
 
+---
+# Initialization and Endpoints
 
 The user script directory (`/bind/scripts`) is prepended to the path.
 
@@ -40,6 +42,13 @@ Some Singularity configurations and Docker will allow arbitrary overlays or moun
 
 - `/bind/data`, `/bind/data_out` are recommended for attaching read-write directories
 - `/bind/data_in`, `/bind/resources` are recommended for attaching read-only directories
+
+
+---
+
+# Bind points
+Some Singularity configurations and Docker will allow arbitrary overlays or mounts, however the following points will always be available:
+
 - `/bind/freesurfer` is recommended for read-write when using FreeSurfer. The `SUBJECTS_DIR` environment variable is preset to this.
 - `/bind/scripts` special directory for user executables
 
