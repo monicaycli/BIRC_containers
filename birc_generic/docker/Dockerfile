@@ -1,6 +1,6 @@
 #mkdir docker_layers && cd docker_layers
 #docker build -t birc -f birc_docker .
-# docker run -it 908fe7f328f9
+# docker run -it --entrypoint=/bin/bash birc
 
 FROM ubuntu:xenial
 MAINTAINER <rhancock@gmail.com>
@@ -22,7 +22,7 @@ RUN apt-get install -y parallel imagemagick graphviz xvfb python2.7
 # Directories
 ## binds
 RUN mkdir -p /bind/lib/{cuda,atlas,lapack,blas} && \
-	mkdir /bind/{data,data_in,data_out,freesurfer,resources} && /bind/scripts && mkdir -p /bind/bin/matlab
+	mkdir /bind/{data,data_in,data_out,freesurfer,resources} && mkdir /bind/scripts && mkdir -p /bind/bin/matlab
 
 ## 
 ENV DOWNLOADS /tmp/downloads
@@ -49,8 +49,9 @@ RUN git clone https://github.com/rordenlab/dcm2niix.git && \
 
 
 ## Tarquin
-RUN curl -L -O https://downloads.sourceforge.net/project/tarquin/TARQUIN_4.3.10/TARQUIN_Linux_4.3.10.tar.gz |tar xz && \
-	mv TARQUIN_linux* /usr/local/tarquin
+RUN curl -L -O https://downloads.sourceforge.net/project/tarquin/TARQUIN_4.3.10/TARQUIN_Linux_4.3.10.tar.gz && \
+	tar xzf  TARQUIN_Linux_4.3.10.tar.gz && \
+	mv TARQUIN_Linux_4.3.10 /usr/local/tarquin
 ENV PATH "${PATH}:/usr/local/tarquin"
 
 ## Gannet
@@ -61,7 +62,7 @@ ENV MATLABPATH "${MFILES}/Gannet3.0:$MATLABPATH"
 
 ## AFNI
 WORKDIR $DOWNLOADS
-RUN apt-get install -y gsl-bin netpbm r-base-core && \
+RUN apt-get install -y gsl-bin netpbm r-base-core libnlopt-dev libnlopt0&& \
 	curl -O https://afni.nimh.nih.gov/pub/dist/bin/linux_ubuntu_16_64/@update.afni.binaries && \
 	tcsh @update.afni.binaries -package linux_ubuntu_16_64  \
 	-do_extras -bindir /usr/local/afni
@@ -82,7 +83,7 @@ ENV MATLABPATH "${FSL_DIR}/etc/matlab/:${MATLABPATH}"
 RUN curl -O https://fsl.fmrib.ox.ac.uk/fsldownloads/patches/eddy-patch-fsl-5.0.11/centos6/eddy_cuda8.0 && \ 
 	chmod 755 eddy_cuda8.0 && \
 	mv eddy_cuda8.0 ${FSL_DIR}/bin && \
-	mv ${FSL_DIR}bin/eddy_cuda ${FSL_DIR}/bin/eddy_cuda7.0 && \
+	mv ${FSL_DIR}/bin/eddy_cuda ${FSL_DIR}/bin/eddy_cuda7.0 && \
 	ln -s ${FSL_DIR}/bin/eddy_cuda8.0 ${FSL_DIR}/bin/eddy_cuda
 
 
@@ -96,8 +97,8 @@ ENV PATH "${PATH}:/usr/local/dtiprep"
 
 ## FreeSurfer
 WORKDIR $DOWNLOADS
-RUN curl -O ftp://surfer.nmr.mgh.harvard.edu/pub/dist/freesurfer/5.3.0-HCP/freesurfer-Linux-centos6_x86_64-stable-pub-v5.3.0-HCP.tar.gz && \
-	tar -C /usr/local/ -xzf freesurfer-Linux-centos6_x86_64-stable-pub-v5.3.0-HCP.tar.gz 
+RUN curl -O ftp://surfer.nmr.mgh.harvard.edu/pub/dist/freesurfer/6.0.0/freesurfer-Linux-centos6_x86_64-stable-pub-v6.0.0.tar.gz && \
+	tar -C /usr/local/ -xzf freesurfer-Linux-centos6_x86_64-stable-pub-v6.0.0.tar.gz
 
 ENV FREESURFER_HOME /usr/local/freesurfer
 ENV SUBJECTS_DIR /bind/freesurfer
@@ -133,9 +134,12 @@ RUN git clone https://github.com/fieldtrip/fieldtrip.git
 ENV MATLABPATH "${MFILES}/fieldtrip:${MATLABPATH}"
 
 ## fmriprep dependencies
+#TODO cleanup hardcoding versions
+# pipe to tar/gunzip seems to fail
 WORKDIR $DOWNLOADS
-RUN curl -O -L https://sourceforge.net/projects/c3d/files/c3d/Nightly/c3d-nightly-Linux-x86_64.tar.gz |tar xz && \
-	mv c3d* /usr/local/c3d
+RUN curl -O -L https://sourceforge.net/projects/c3d/files/c3d/Nightly/c3d-nightly-Linux-x86_64.tar.gz \
+	&& tar xzf c3d-nightly-Linux-x86_64.tar.gz && \
+	mv c3d-1.1.0-Linux-x86_64 /usr/local/c3d
 ENV PATH "${PATH}:/usr/local/c3d/bin"
 
 RUN git clone https://github.com/rhr-pruim/ICA-AROMA.git && mv ICA-AROMA /usr/share
@@ -153,6 +157,8 @@ RUN conda create -y -n poldrack python=3.6
 
 
 ## mriqc
+SHELL ["/bin/bash", "-c"]
+
 RUN source activate poldrack && \
 	pip install -r https://raw.githubusercontent.com/poldracklab/mriqc/master/requirements.txt && \
 	pip install git+https://github.com/poldracklab/mriqc.git
@@ -165,20 +171,21 @@ RUN source deactivate
 
 ## cpac
 RUN apt-get install -y libgraphviz-dev graphviz 
-RUN conda create -y -n cpac2 python=2.7 cython numpy scipy matplotlib networkx==1.11 traits pyyaml jinja2==2.7.2 nose ipython pip wxpython pandas graphviz pydot && \
+RUN conda create -y -n cpac python=2.7 cython numpy scipy matplotlib networkx==1.11 traits pyyaml jinja2==2.7.2 nose ipython pip wxpython pandas graphviz pydot && \
 	source activate cpac && \
 	pip install lockfile pygraphviz nibabel nipype patsy psutil boto3 INDI-Tools future==0.15.2 prov simplejson fs==0.5.4
-RUN source deactivate
+#RUN source deactivate
 
 # R
 RUN apt-get install -y r-cran-ggplot2
 
-#install.packages("rstan", repos = "https://cloud.r-project.org/", dependencies=TRUE)
+RUN Rscript -e 'install.packages("rstan", repos = "https://cloud.r-project.org/", dependencies=TRUE)'
 
 
 # Cleanup
 RUN apt-get clean -y && apt-get autoclean -y && apt-get autoremove -y
 RUN rm -rf $DOWNLOADS
+RUN ldconfig
 
 # Configuration
 

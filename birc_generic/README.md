@@ -65,6 +65,15 @@ Some system libraries can be exposed to the container through bind points:
 
 ---
 
+# Warning on Reproducibility
+For performance and compatibility reasons, the container is designed to bind selected libraries ( to `/bind/lib/{cuda,blas,lapack,atlas}`) from the host system. In other words, the container is not fully independent of the host system. If the host libraries change, the container environment and/or results from the container may not be fully reproducible. 
+
+These libraries are intended to come from a host HPC system that uses `modules` or another configuration management system to maintain consistent library versions. This feature should not have negative consequences for HPC users, but you should be aware of this if you make use of CUDA/blas/lapack/atlas on a system that you maintain.
+
+
+
+---
+
 # Python
 
 There are several versions of python installed:
