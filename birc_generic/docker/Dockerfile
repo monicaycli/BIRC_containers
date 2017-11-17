@@ -21,8 +21,12 @@ RUN apt-get install -y parallel imagemagick graphviz xvfb python2.7
 
 # Directories
 ## binds
-RUN mkdir -p /bind/lib/{cuda,atlas,lapack,blas} && \
-	mkdir /bind/{data,data_in,data_out,freesurfer,resources} && mkdir /bind/scripts && mkdir -p /bind/bin/matlab
+RUN mkdir -p /bind/lib/cuda && \
+	mkdir /bind/data && mkdir /bind/data_in && mkdir /bind/data_out && \
+	mkdir /bind/freesurfer && mkdir /bind/resources && \
+	mkdir /bind/scratch && mkdir /bind/work && \
+	mkdir /bind/archive && mkdir /bind/scripts && \
+	mkdir -p /bind/bin/matlab && mkdir /bind/licenses
 
 ## 
 ENV DOWNLOADS /tmp/downloads
@@ -62,7 +66,8 @@ ENV MATLABPATH "${MFILES}/Gannet3.0:$MATLABPATH"
 
 ## AFNI
 WORKDIR $DOWNLOADS
-RUN apt-get install -y gsl-bin netpbm r-base-core libnlopt-dev libnlopt0&& \
+RUN apt-get install -y gsl-bin netpbm r-base-core libnlopt-dev \
+libjpeg62 xvfb libglu1-mesa-dev libglw1-mesa libxm4 libnlopt0 && \
 	curl -O https://afni.nimh.nih.gov/pub/dist/bin/linux_ubuntu_16_64/@update.afni.binaries && \
 	tcsh @update.afni.binaries -package linux_ubuntu_16_64  \
 	-do_extras -bindir /usr/local/afni
@@ -148,13 +153,21 @@ ENV PATH "${PATH}:/usr/share/ICA-AROMA"
 
 # Python
 ## Anaconda 2
+WORKDIR $DOWNLOADS
 RUN curl -O https://repo.continuum.io/archive/Anaconda2-5.0.1-Linux-x86_64.sh && \
 	bash Anaconda2-5.0.1-Linux-x86_64.sh -b -p /usr/local/anaconda2
 ENV PATH "/usr/local/anaconda2/bin:${PATH}"
 
-RUN conda create --channel conda-forge -y -n python3 python=3.6 anaconda nibabel pystan nipype
-RUN conda create -y -n poldrack python=3.6
+### DICOM tools
+RUN conda install --channel conda-forge -y nibabel pystan nipype pydicom
+RUN pip install git+https://github.com/moloney/dcmstack.git
+RUN pip install https://github.com/nipy/heudiconv/archive/master.zip
 
+RUN git clone https://github.com/jmtyszka/bidskit.git && mv bidskit /usr/local/
+ENV PATH "${PATH}":/usr/local/bidskit
+
+RUN conda create --channel conda-forge -y -n python3 python=3.6 anaconda nibabel pystan nipype pydicom 
+RUN conda create -y -n poldrack python=3.6
 
 ## mriqc
 SHELL ["/bin/bash", "-c"]
@@ -166,7 +179,7 @@ RUN source deactivate
 
 ## fmriprep
 RUN source activate poldrack && \
-	pip install fmriprep 
+	pip install fmriprep pydicom
 RUN source deactivate 
 
 ## cpac
@@ -181,6 +194,23 @@ RUN apt-get install -y r-cran-ggplot2
 
 RUN Rscript -e 'install.packages("rstan", repos = "https://cloud.r-project.org/", dependencies=TRUE)'
 
+# CUDA
+WORKDIR $DOWNLOADS
+RUN apt-get install kmod module-init-tools
+
+RUN curl -L -O http://us.download.nvidia.com/XFree86/Linux-x86_64/375.26/NVIDIA-Linux-x86_64-375.26.run && \
+	chmod 755 NVIDIA-Linux-x86_64-375.26.run && \
+	./NVIDIA-Linux-x86_64-375.26.run -x --target /usr/local/nvidia
+ENV PATH /usr/local/nvidia:${PATH}
+ENV LD_LIBRARY_PATH /usr/local/nvidia:${LD_LIBRARY_PATH}
+
+#CUDA URLs
+#http://developer.download.nvidia.com/compute/cuda/7.5/Prod/local_installers/cuda_7.5.18_linux.run
+RUN https://developer.nvidia.com/compute/cuda/8.0/Prod2/local_installers/cuda_8.0.61_375.26_linux-run && \
+	chmod 755 cuda_8.0.61_375.26_linux-run && \
+	./cuda_8.0.61_375.26_linux-run --silent --toolkit
+ENV PATH /usr/local/cuda/bin:${PATH}
+ENV LD_LIBRARY_PATH /usr/local/cuda/lib64:${LD_LIBRARY_PATH}
 
 # Cleanup
 RUN apt-get clean -y && apt-get autoclean -y && apt-get autoremove -y
@@ -194,11 +224,19 @@ ENV PATH /bind/scripts:$PATH
 
 ## Other ENVs
 
-#setup entry points to run the initialization script
+#setup singularity compatible entry points to run the initialization script
 #by default, run the user runtime.sh, but user can override
 #e.g. docker run birc myscript.sh
-ENTRYPOINT ["/usr/bin/env","/usr/local/bin/entry_init.sh"]
-CMD ["/bind/scripts/runtime.sh"]
+ENTRYPOINT ["/usr/bin/env","/singularity"]
+#not singularity compatible
+#CMD ["/bind/scripts/runtime.sh"]
 
-COPY entry_init.sh /usr/local/bin/
-RUN chmod 755 /usr/local/bin/entry_init.sh
+COPY entry_init.sh /singularity
+COPY freesurfer_license.txt ${FREESURFER_HOME}/license.txt
+RUN chmod 755 /singularity
+
+RUN /usr/bin/env |sed  '/^HOME/d' | sed '/^HOSTNAME/d' | sed  '/^USER/d' | sed '/^PWD/d' > /environment && \
+	chmod 755 /environment
+
+
+
