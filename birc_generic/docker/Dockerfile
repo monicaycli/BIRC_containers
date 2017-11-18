@@ -206,7 +206,7 @@ ENV LD_LIBRARY_PATH /usr/local/nvidia:${LD_LIBRARY_PATH}
 
 #CUDA URLs
 #http://developer.download.nvidia.com/compute/cuda/7.5/Prod/local_installers/cuda_7.5.18_linux.run
-RUN https://developer.nvidia.com/compute/cuda/8.0/Prod2/local_installers/cuda_8.0.61_375.26_linux-run && \
+RUN curl -L -O https://developer.nvidia.com/compute/cuda/8.0/Prod2/local_installers/cuda_8.0.61_375.26_linux-run && \
 	chmod 755 cuda_8.0.61_375.26_linux-run && \
 	./cuda_8.0.61_375.26_linux-run --silent --toolkit
 ENV PATH /usr/local/cuda/bin:${PATH}
