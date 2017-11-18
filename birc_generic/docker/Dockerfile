@@ -1,7 +1,3 @@
-#mkdir docker_layers && cd docker_layers
-#docker build -t birc -f birc_docker .
-# docker run -it --entrypoint=/bin/bash birc
-
 FROM ubuntu:xenial
 MAINTAINER <rhancock@gmail.com>
 
@@ -12,7 +8,9 @@ RUN echo "deb http://us.archive.ubuntu.com/ubuntu/ xenial universe" >> /etc/apt/
 RUN apt-get update && apt-get upgrade -y
 RUN apt-get install -y nano curl ed file tcsh git wget \
 	build-essential cmake pigz unzip pkg-config s3cmd s3fs \
-	bzip2 unzip libxml2-dev libxslt-dev 
+	bzip2 unzip libxml2-dev libxslt-dev apt-utils locales
+
+RUN locale-gen en_US.UTF-8 && update-locale LANG=en_US.UTF-8
 
 ## useful packages
 #Install a system python (with patched paltform.dist()) here
@@ -26,7 +24,7 @@ RUN mkdir -p /bind/lib/cuda && \
 	mkdir /bind/freesurfer && mkdir /bind/resources && \
 	mkdir /bind/scratch && mkdir /bind/work && \
 	mkdir /bind/archive && mkdir /bind/scripts && \
-	mkdir -p /bind/bin/matlab && mkdir /bind/licenses
+	mkdir -p /bind/bin/matlab && mkdir /bind/matlablicense
 
 ## 
 ENV DOWNLOADS /tmp/downloads
@@ -241,5 +239,6 @@ RUN /usr/bin/env |sed  '/^HOME/d' | sed '/^HOSTNAME/d' | sed  '/^USER/d' | sed '
 RUN echo "/usr/local/nvidia" > /etc/ld.so.conf.d/nvidia-lib64.conf && \
 ldconfig
 
+RUN echo "Welcome to the BURC!\nDocumentation is available at \n*http://birc-int.psy.uconn.edu/wiki/Containers\n*https://github.com/bircibrain/containers" > /etc/motd
 
 
