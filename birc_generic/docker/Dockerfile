@@ -238,5 +238,8 @@ RUN chmod 755 /singularity
 RUN /usr/bin/env |sed  '/^HOME/d' | sed '/^HOSTNAME/d' | sed  '/^USER/d' | sed '/^PWD/d' > /environment && \
 	chmod 755 /environment
 
+RUN echo "/usr/local/nvidia" > /etc/ld.so.conf.d/nvidia-lib64.conf && \
+ldconfig
+
 
 
