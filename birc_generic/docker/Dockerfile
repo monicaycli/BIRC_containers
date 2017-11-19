@@ -8,9 +8,7 @@ RUN echo "deb http://us.archive.ubuntu.com/ubuntu/ xenial universe" >> /etc/apt/
 RUN apt-get update && apt-get upgrade -y
 RUN apt-get install -y nano curl ed file tcsh git wget \
 	build-essential cmake pigz unzip pkg-config s3cmd s3fs \
-	bzip2 unzip libxml2-dev libxslt-dev apt-utils locales
-
-RUN locale-gen en_US.UTF-8 && update-locale LANG=en_US.UTF-8
+	bzip2 unzip libxml2-dev libxslt-dev bc
 
 ## useful packages
 #Install a system python (with patched paltform.dist()) here
@@ -190,7 +188,7 @@ RUN conda create -y -n cpac python=2.7 cython numpy scipy matplotlib networkx==1
 # R
 RUN apt-get install -y r-cran-ggplot2
 
-RUN Rscript -e 'install.packages("rstan", repos = "https://cloud.r-project.org/", dependencies=TRUE)'
+RUN Rscript -e 'install.packages(c("rstan", "MCMCglmm"), repos = "https://cloud.r-project.org/", dependencies=TRUE)'
 
 # CUDA
 WORKDIR $DOWNLOADS
@@ -242,3 +240,7 @@ ldconfig
 RUN echo "Welcome to the BURC!\nDocumentation is available at \n*http://birc-int.psy.uconn.edu/wiki/Containers\n*https://github.com/bircibrain/containers" > /etc/motd
 
 
+#locale
+RUN apt-get install -y apt-utils locales
+RUN echo -e 'LANG="en_US.UTF-8"\nLANGUAGE="en_US:en"\n' > /etc/default/locale
+RUN locale-gen en_US.UTF-8 && update-locale LANG=en_US.UTF-8
