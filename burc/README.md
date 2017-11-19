@@ -1,89 +1,157 @@
-# Containers on macOS
-Download and install [Docker CE](https://store.docker.com/editions/community/docker-ce-desktop-mac)
+# BIRC User Container for Research (BURC)
 
----
+BURC provides a large suite of neuroimaging packages for the analysis of functional, structural, and diffusion MRI, MRS and M/EEG data in a container that can be run under Docker or Singularity. Containers are lightweight, self-contained software environments that run on a host system.
 
-# Containers on Linux
+# Quick Start on HPC
 
-- Download and install [Docker CE](https://store.docker.com/editions/community/docker-ce-desktop-mac) OR
-- Download and install [Singularity](http://singularity.lbl.gov)
+```
+#set up a directory structure
+module load git
+git clone https://github.com/bircibrain/containers.git
+cd containers/example_sbatch
+./mk_sel.sh myproject
+```
 
----
+1. Put any data files and scripts in the respective directories under `/scratch/${USER}/myproject`
+2. Edit the example SLURM batch scripts (e.g. `batch_openmp.sh` for an OpenMP enabled job)
+3. Submit your job using
 
-# Containers on HPC
+`sbatch ./batch_openmp.sh`
+
+
+
+# Installation
+
+## Host System
+### macOS
+- Download and install [Docker CE](https://store.docker.com/editions/community/docker-ce-desktop-mac)
+
+### Linux
+
+- Download and install [Singularity](http://singularity.lbl.gov) OR
+- Download and install [Docker CE](https://store.docker.com/editions/community/docker-ce-desktop-mac) 
+
+### Storrs HPC
 
 - Singularity (2.3) is installed on Storrs HPC
-- Docker typically isn't available on HPC for security reasons
+- Container images are available at `/scratch/birc_ro/containers`
+
 
 ---
 
 # Build the Container
 
----
+## Docker
+To build the container directly from the git repository (`master` branch), run
+`docker build -t burc https://github.com/bircibrain/containers.git#master:burc`
 
-# Initialization and Endpoints
+## Singularity
+You are encouraged to use the prebuilt containers at 
 
-The default entrypoint executes the following
+- `/scratch/birc_ro/containers` on HPC
 
-1. An internal initialization bash script
-2. If it exists, `/bind/scripts/entry_init.sh` will be sourced from bash
-3. If it exists, `/bind/scripts/runtime.sh` will be execed
-4. The final exec of `/bind/scripts/runtime.sh` can be overridden by passing an alternative as an argument, e.g. `docker run birc myscript.sh`
 
----
-# Initialization and Endpoints
 
-The user script directory (`/bind/scripts`) is prepended to the path.
+# Run the Container
 
----
+**Singularity**
 
-# Bind points
-Some Singularity configurations and Docker will allow arbitrary overlays or mounts, however the following points will always be available:
+`singularity run burc.img /bin/bash`
+
+**Docker**
+
+`docker run -t burc /bin/bash`
+
+The commands above will open an interactive shell session inside the container. In practice, you probably want to bind some host directories to the container and execute a script in place of `/bin/bash`, as described below.
+
+
+# Usage
+
+## Bind Points
+
+A container filesystem is normally isolated from the host file system. Several *bind points* are defined in the container to aid in connecting your host system files to the container. Examples of creating a host directory structure (`mk_skel.sh`) and binding these (`burc_wrapper.sh`) are provided on [GitHub](https://github.com/bircibrain/containers).
+
+Under Singularity, directories can be bound to the container using multiple `--bind /path/on/host:/path/in/container` options. The path in the container must exist. Some useful bind points inside the container are:
 
 - `/bind/data`, `/bind/data_out` are recommended for attaching read-write directories
 - `/bind/data_in`, `/bind/resources` are recommended for attaching read-only directories
+- `/bind/scripts` for user scripts and executables. This directory is prepended to the container `PATH`.
+- The FreeSurfer `SUBJECTS_DIR` variable points to `/bind/freesurfer` (although this can be changed)
+- `/bind/scratch` and `/bind/work` are intended for temporary files, mirroring the architecture of the [Storrs HPC filesystems](https://wiki.hpc.uconn.edu/index.php/Data_Storage_Guide)
+
+## Special Bind Points 
+
+### Matlab
+
+- A host Matlab installation can be attached by binding the base matlab directory (containing `bin` and `bin/glnxa64`) can be attached to `/bind/bin/matlab` 
+- Matlab may also require a directory containing a license file to be attached to `/bind/matlablicense` and the `LM_LICENSE_FILE` environment variable set to point to this file
+
+### CUDA
+
+- CUDA 8.0.61 and NVIDIA driver 375.26 (matching Storrs GPU node drivers) are installed in the container
+- `/bind/cuda` is also provided for the adventurous user who needs a different configuration
 
 
----
+## Running commands
 
-# Bind points
-Some Singularity configurations and Docker will allow arbitrary overlays or mounts, however the following points will always be available:
+Simply pass a command known to the container (e.g. an executable script in `/bind/scripts`) and any options to the run command:
 
-- `/bind/freesurfer` is recommended for read-write when using FreeSurfer. The `SUBJECTS_DIR` environment variable is preset to this.
-- `/bind/scripts` special directory for user executables
+`singularity run burc.img command [options...]`
 
----
+`docker run -t burc command [options...]`
 
-# Special bind points
-
-Some system libraries can be exposed to the container through bind points:
-
-- `/bind/lib/{atlas,blas,lapack}`
- - Versions of these libraries also exist in the container. The container initialization will setup the container to use the bound versions if they are attached. 
-- `/bind/lib/cuda`
-- `/bind/bin/matlab`
-
----
-
-# Warning on Reproducibility
-For performance and compatibility reasons, the container is designed to bind selected libraries ( to `/bind/lib/{cuda,blas,lapack,atlas}`) from the host system. In other words, the container is not fully independent of the host system. If the host libraries change, the container environment and/or results from the container may not be fully reproducible. 
-
-These libraries are intended to come from a host HPC system that uses `modules` or another configuration management system to maintain consistent library versions. This feature should not have negative consequences for HPC users, but you should be aware of this if you make use of CUDA/blas/lapack/atlas on a system that you maintain.
+Behind the scenes, `command [options...]` are passed as arguments to a bash script that manages environment initialization and then calls 
+`exec "$@"`
 
 
+# Installed software
 
----
+In general, the current version of each package is pulled when the container is built. Major packages installed include:
 
-# Python
+## DICOM converters
+- `dcm2niix`
+- `dicm2nii` (requires Matlab)
+- `pydicom`, `nibabel`, `dcmstack`, `bidskit`, `heudiconv`
+
+## Neuroimaging Analysis
+- AFNI
+- FSL with patched `eddy_cuda`
+- Freesurfer 6.0
+- ANTs
+- DTIPrep
+
+## Spectroscopy
+
+- Tarquin
+- Gannet 3.0 master (requires Matlab)
+
+## M/EEG
+
+- Fieldtrip (requires Matlab)
+
+## Neuroimaging Pipelines
+
+- fmriprep
+- mriqc
+- C-PAC
+- nipype
+
+## Statistics
+
+- R
+- pystan and Rstan
+- MCMCglmm
+
+## Python
 
 There are several versions of python installed:
 
 - A system python 2.7 at `/usr/bin/python`
 - Anaconda python 2.7 (`/usr/bin/env python`)
+- A python 3.6 Anaconda environment (`python3`)
 
----
 
-# Python environments
+### Python environments
 
 There are several Anaconda-based environments. Switch between them using `source activate name`
 
@@ -92,6 +160,9 @@ There are several Anaconda-based environments. Switch between them using `source
 - `poldrack` (Python 3.6) with `fmriprep` and `mriqc`
 
 
+# Bugs/Feature Requests
+
+Submit bug reports and feature requests on [GitHub](https://github.com/bircibrain/containers/issues/)
 
 
 
