@@ -8,7 +8,12 @@ RUN echo "deb http://us.archive.ubuntu.com/ubuntu/ xenial universe" >> /etc/apt/
 RUN apt-get update && apt-get upgrade -y
 RUN apt-get install -y nano curl ed file tcsh git wget \
 	build-essential cmake pigz unzip pkg-config s3cmd s3fs \
-	bzip2 unzip libxml2-dev libxslt-dev bc
+	bzip2 unzip libxml2-dev libxslt-dev bc 
+
+#blas and lapack are only availble as static builds-container software will rely on these
+#Install the MPICH2 reference MPI implementation inside the container for builds
+#These need to be swapped out at runtime on HPC to get system specific interconnect fabric/storage support (GPFS, InfiniBand, CRAY, etc)
+RUN apt-get install -y libblas-dev liblapack-dev mpich libmpich-dev libhdf5-mpich-dev
 
 ## useful packages
 #Install a system python (with patched paltform.dist()) here
@@ -22,7 +27,9 @@ RUN mkdir -p /bind/lib/cuda && \
 	mkdir /bind/freesurfer && mkdir /bind/resources && \
 	mkdir /bind/scratch && mkdir /bind/work && \
 	mkdir /bind/archive && mkdir /bind/scripts && \
-	mkdir -p /bind/bin/matlab && mkdir /bind/matlablicense
+	mkdir -p /bind/bin/matlab && mkdir /bind/matlablicense && \
+	mkdir -p /bind/lib/mpich2 && mkdir -p /bind/lib/openmpi && \
+	mkdir -p /bind/lib/storage && mkdir -p /bind/lib/fabric
 
 ## 
 ENV DOWNLOADS /tmp/downloads
@@ -188,7 +195,7 @@ RUN conda create -y -n cpac python=2.7 cython numpy scipy matplotlib networkx==1
 # R
 RUN apt-get install -y r-cran-ggplot2
 
-RUN Rscript -e 'install.packages(c("rstan", "MCMCglmm"), repos = "https://cloud.r-project.org/", dependencies=TRUE)'
+RUN Rscript -e 'install.packages(c("rstan", "MCMCglmm","mcmc", "MasterBayes"), repos = "https://cloud.r-project.org/", dependencies=TRUE)'
 
 # CUDA
 WORKDIR $DOWNLOADS
@@ -241,6 +248,6 @@ RUN echo "Welcome to the BURC!\nDocumentation is available at \n*http://birc-int
 
 
 #locale
-RUN apt-get install -y apt-utils locales
-RUN echo -e 'LANG="en_US.UTF-8"\nLANGUAGE="en_US:en"\n' > /etc/default/locale
-RUN locale-gen en_US.UTF-8 && update-locale LANG=en_US.UTF-8
+#RUN apt-get install -y apt-utils locales
+#RUN echo -e 'LANG="en_US.UTF-8"\nLANGUAGE="en_US:en"\n' > /etc/default/locale
+#RUN locale-gen en_US.UTF-8 && update-locale LANG=en_US.UTF-8
