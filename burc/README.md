@@ -9,7 +9,7 @@ BURC provides a large suite of neuroimaging packages for the analysis of functio
 module load git
 git clone https://github.com/bircibrain/containers.git
 cd containers/example_sbatch
-./mk_sel.sh myproject
+./mk_skel.sh myproject
 ```
 
 1. Put any data files and scripts in the respective directories under `/scratch/${USER}/myproject`
