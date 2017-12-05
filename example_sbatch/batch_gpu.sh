@@ -3,8 +3,6 @@
 #SBATCH --mail-user=First.Last@uconn.edu	# Your email address
 #SBATCH --nodes=1					# OpenMP requires a single node
 #SBATCH --ntasks=1					# Run a single serial task
-#SBATCH --cpus-per-task=8           # Number of cores to use
-#SBATCH --mem=4096mb				# Memory limit
 #SBATCH --time=01:00:00				# Time limit hh:mm:ss
 #SBATCH -e error_%A_%a.log			# Standard error
 #SBATCH -o output_%A_%a.log			# Standard output
@@ -12,8 +10,8 @@
 #SBATCH --partition=gpu
 #SBATCH --gres=gpu:1				# Request a GPU
 
-export OMP_NUM_THREADS=8			#<= cpus-per-task
-export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=8	#<= cpus-per-task
+export OMP_NUM_THREADS=1			#<= cpus-per-task
+export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=1	#<= cpus-per-task
 ##### END OF JOB DEFINITION  #####
 
 #Define user paths
