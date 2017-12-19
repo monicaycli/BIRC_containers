@@ -215,6 +215,10 @@ RUN curl -L -O https://developer.nvidia.com/compute/cuda/8.0/Prod2/local_install
 ENV PATH /usr/local/cuda/bin:${PATH}
 ENV LD_LIBRARY_PATH /usr/local/cuda/lib64:${LD_LIBRARY_PATH}
 
+# AWSCLI
+RUN conda install -y -c conda-forge awscli
+
+
 # Cleanup
 RUN apt-get clean -y && apt-get autoclean -y && apt-get autoremove -y
 RUN rm -rf $DOWNLOADS
