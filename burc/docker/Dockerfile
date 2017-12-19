@@ -243,6 +243,15 @@ RUN curl -L -O https://ftp.humanconnectome.org/workbench/workbench-linux64-v1.2.
 ENV PATH "/usr/local/workbench/bin_linux64:${PATH}"
 ENV LD_LIBRARY_PATH "${LD_LIBRARY_PATH}:/usr/local/workbench/libs_linux64"
 
+# MNE
+WORKDIR $DOWNLOADS
+RUN curl -O http://birc-int.psy.uconn.edu/containers/deps/MNE-2.7.0-3106-Linux-x86_64.tar.gz && \
+	tar xzf MNE-2.7.0-3106-Linux-x86_64.tar.gz && \
+	mv MNE-2.7.0-3106-Linux-x86_64 /usr/local/MNE
+ENV PATH "${PATH}:/usr/local/MNE/bin"
+ENV LD_LIBRARY_PATH "${LD_LIBRARY_PATH}:/usr/local/MNE/lib"
+
+
 # Cleanup
 RUN apt-get clean -y && apt-get autoclean -y && apt-get autoremove -y
 RUN rm -rf $DOWNLOADS
