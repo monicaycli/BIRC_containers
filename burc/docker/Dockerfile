@@ -279,3 +279,9 @@ RUN echo "Welcome to the BURC!\nDocumentation is available at \n*http://birc-int
 #RUN apt-get install -y apt-utils locales
 #RUN echo -e 'LANG="en_US.UTF-8"\nLANGUAGE="en_US:en"\n' > /etc/default/locale
 #RUN locale-gen en_US.UTF-8 && update-locale LANG=en_US.UTF-8
+
+
+# Shell prompt
+RUN cat /etc/csh.cshrc | sed -e 's/prompt.*/prompt = "[%n@%m(burc):%c]%# "/' > /tmp/tmp.cshrc && \
+mv /tmp/tmp.cshrc /etc/csh.cshrc
+
