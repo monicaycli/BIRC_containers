@@ -124,6 +124,7 @@ In general, the current version of each package is pulled when the container is 
 
 - Tarquin
 - Gannet 3.0 master (requires Matlab)
+- VESPA (in the `vespa` conda-2.7 environment)
 
 ## M/EEG
 
@@ -158,7 +159,7 @@ There are several Anaconda-based environments. Switch between them using `source
 - `python3` Python 3.6 with `nibabel`, `nipype` and `pystan`
 - `cpac` (Python 2.7)
 - `poldrack` (Python 3.6) with `fmriprep` and `mriqc`
-
+- `vespa` (Python 2.7) with `vespa`
 
 # Bugs/Feature Requests
 

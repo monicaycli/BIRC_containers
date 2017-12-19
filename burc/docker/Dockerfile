@@ -225,6 +225,24 @@ source activate vespa && \
 conda install -y -c https://conda.anaconda.org/dgursoy pywavelets=0.3.0 && \
 pip install pygamma hlsvdpro vespa-suite
 
+# GIfTI/CIfTI
+#WORKDIR $DOWNLOADS
+#RUN curl -L -O http://www.artefact.tk/software/matlab/gifti/gifti-1.6.zip &&\
+#unzip gifti-1.6.zip && \
+#mv gifti-1.6 ${MFILES}
+#ENV MATLABPATH "${MFILES}/gifti-1.6:${MATLABPATH}"
+
+RUN apt-get install -y r-cran-rgl
+RUN Rscript -e "install.packages('cifti',repos = 'https://cloud.r-project.org/', dependencies=TRUE)"
+
+# HCP Workbench
+WORKDIR $DOWNLOADS
+RUN curl -L -O https://ftp.humanconnectome.org/workbench/workbench-linux64-v1.2.3.zip && \
+	unzip workbench-linux64-v1.2.3.zip && \
+	mv workbench /usr/local
+ENV PATH "/usr/local/workbench/bin_linux64:${PATH}""
+ENV LD_LIBRARY_PATH "/usr/local/workbench/libs_linux64:${LD_LIBRARY_PATH}""
+
 # Cleanup
 RUN apt-get clean -y && apt-get autoclean -y && apt-get autoremove -y
 RUN rm -rf $DOWNLOADS
