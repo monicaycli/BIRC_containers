@@ -219,7 +219,7 @@ ENV LD_LIBRARY_PATH /usr/local/cuda/lib64:${LD_LIBRARY_PATH}
 RUN conda install -y -c conda-forge awscli
 
 # VESPA
-RUN apt-get install fftw3 libfftw3-dev && \
+RUN apt-get install -y fftw3 libfftw3-dev && \
 conda create -y -n vespa -c conda-forge python=2.7 numpy scipy matplotlib==1.5.3 wxPython=3.0 packaging pydicom==0.9.9 && \
 source activate vespa && \
 conda install -y -c https://conda.anaconda.org/dgursoy pywavelets=0.3.0 && \
@@ -240,8 +240,8 @@ WORKDIR $DOWNLOADS
 RUN curl -L -O https://ftp.humanconnectome.org/workbench/workbench-linux64-v1.2.3.zip && \
 	unzip workbench-linux64-v1.2.3.zip && \
 	mv workbench /usr/local
-ENV PATH "/usr/local/workbench/bin_linux64:${PATH}""
-ENV LD_LIBRARY_PATH "/usr/local/workbench/libs_linux64:${LD_LIBRARY_PATH}""
+ENV PATH "/usr/local/workbench/bin_linux64:${PATH}"
+ENV LD_LIBRARY_PATH "${LD_LIBRARY_PATH}:/usr/local/workbench/libs_linux64"
 
 # Cleanup
 RUN apt-get clean -y && apt-get autoclean -y && apt-get autoremove -y
