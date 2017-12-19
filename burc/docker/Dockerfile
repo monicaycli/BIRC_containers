@@ -290,7 +290,12 @@ RUN echo "Welcome to the BURC!\nDocumentation is available at \n*http://birc-int
 #RUN locale-gen en_US.UTF-8 && update-locale LANG=en_US.UTF-8
 
 
-# Shell prompt
+# tcsh/csh  prompt
 RUN cat /etc/csh.cshrc | sed -e 's/prompt.*/prompt = "[%n@%m(burc):%c]%# "/' > /tmp/tmp.cshrc && \
 mv /tmp/tmp.cshrc /etc/csh.cshrc
+
+# bash prompt
+RUN cat /etc/bash.bashrc | sed -e "s/PS1=.*/PS1='\${debian_chroot:+(\$debian_chroot)}\\\u@\\\h(burc):\\\w\\\\$ '/" > /tmp/tmp.bashrc && \
+mv /tmp/tmp.bashrc /etc/bash.bashrc
+
 
