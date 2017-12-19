@@ -218,6 +218,12 @@ ENV LD_LIBRARY_PATH /usr/local/cuda/lib64:${LD_LIBRARY_PATH}
 # AWSCLI
 RUN conda install -y -c conda-forge awscli
 
+# VESPA
+RUN apt-get install fftw3 libfftw3-dev && \
+conda create -y -n vespa -c conda-forge python=2.7 numpy scipy matplotlib==1.5.3 wxPython=3.0 packaging pydicom==0.9.9 && \
+source activate vespa && \
+conda install -y -c https://conda.anaconda.org/dgursoy pywavelets=0.3.0 && \
+pip install pygamma hlsvdpro vespa-suite
 
 # Cleanup
 RUN apt-get clean -y && apt-get autoclean -y && apt-get autoremove -y
