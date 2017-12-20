@@ -241,7 +241,7 @@ RUN curl -L -O https://ftp.humanconnectome.org/workbench/workbench-linux64-v1.2.
 	unzip workbench-linux64-v1.2.3.zip && \
 	mv workbench /usr/local
 ENV PATH "/usr/local/workbench/bin_linux64:${PATH}"
-ENV LD_LIBRARY_PATH "${LD_LIBRARY_PATH}:/usr/local/workbench/libs_linux64"
+#ENV LD_LIBRARY_PATH "${LD_LIBRARY_PATH}:/usr/local/workbench/libs_linux64"
 
 # MNE
 WORKDIR $DOWNLOADS
