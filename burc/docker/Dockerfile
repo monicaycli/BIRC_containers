@@ -251,6 +251,15 @@ RUN curl -O http://birc-int.psy.uconn.edu/containers/deps/MNE-2.7.0-3106-Linux-x
 ENV PATH "${PATH}:/usr/local/MNE/bin"
 ENV LD_LIBRARY_PATH "${LD_LIBRARY_PATH}:/usr/local/MNE/lib"
 
+# Solar
+WORKDIR $DOWNLOADS
+RUN curl -L -O https://www.nitrc.org/frs/download.php/10455/solar832.zip && \
+unzip solar832.zip && \
+cd solar832 && \
+./install_solar /usr/local/solar/8.3.2 /usr/local/bin solar
+
+RUN Rscript -e "install.packages('solarius',repos = 'https://cloud.r-project.org/', dependencies=TRUE)"
+
 
 # Cleanup
 RUN apt-get clean -y && apt-get autoclean -y && apt-get autoremove -y

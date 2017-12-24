@@ -129,6 +129,7 @@ In general, the current version of each package is pulled when the container is 
 ## M/EEG
 
 - Fieldtrip (requires Matlab)
+- MNE
 
 ## Neuroimaging Pipelines
 
@@ -142,6 +143,7 @@ In general, the current version of each package is pulled when the container is 
 - R
 - pystan and Rstan
 - MCMCglmm
+- solar and solarius R interface
 
 ## Python
 
