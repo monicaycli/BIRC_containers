@@ -255,7 +255,7 @@ ENV LD_LIBRARY_PATH "${LD_LIBRARY_PATH}:/usr/local/MNE/lib"
 WORKDIR $DOWNLOADS
 RUN curl -L -O https://www.nitrc.org/frs/download.php/10455/solar832.zip && \
 unzip solar832.zip && \
-cd solar832 && \
+cd solar832 && chmod 755 install_solar && \
 ./install_solar /usr/local/solar/8.3.2 /usr/local/bin solar
 
 RUN Rscript -e "install.packages('solarius',repos = 'https://cloud.r-project.org/', dependencies=TRUE)"
