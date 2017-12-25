@@ -261,6 +261,12 @@ cd solar832 && chmod 755 install_solar && \
 RUN Rscript -e "install.packages('solarius',repos = 'https://cloud.r-project.org/', dependencies=TRUE)"
 
 
+# JAVA
+RUN apt-get install default-jre
+ENV MATLAB_JAVA /usr/lib/jvm/default-java/jre/
+ENV JAVA_HOME /usr/lib/jvm/default-java/jre/
+
+
 # Cleanup
 RUN apt-get clean -y && apt-get autoclean -y && apt-get autoremove -y
 RUN rm -rf $DOWNLOADS
