@@ -6,19 +6,19 @@ MAINTAINER <rhancock@gmail.com>
 RUN echo "deb http://us.archive.ubuntu.com/ubuntu/ xenial universe" >> /etc/apt/sources.list
 
 RUN apt-get update && apt-get upgrade -y
-RUN apt-get install -y nano curl ed file tcsh git wget \
+RUN apt-get update && apt-get install -y nano curl ed file tcsh git wget \
 	build-essential cmake pigz unzip pkg-config s3cmd s3fs \
 	bzip2 unzip libxml2-dev libxslt-dev bc 
 
 #blas and lapack are only availble as static builds-container software will rely on these
 #Install the MPICH2 reference MPI implementation inside the container for builds
 #These need to be swapped out at runtime on HPC to get system specific interconnect fabric/storage support (GPFS, InfiniBand, CRAY, etc)
-RUN apt-get install -y libblas-dev liblapack-dev mpich libmpich-dev libhdf5-mpich-dev
+RUN apt-get update && apt-get install -y libblas-dev liblapack-dev mpich libmpich-dev libhdf5-mpich-dev
 
 ## useful packages
 #Install a system python (with patched paltform.dist()) here
 #Anaconda will be installed later
-RUN apt-get install -y parallel imagemagick graphviz xvfb python2.7
+RUN apt-get update && apt-get install -y parallel imagemagick graphviz xvfb python2.7
 
 # Directories
 ## binds
@@ -66,10 +66,14 @@ WORKDIR $MFILES
 RUN git clone https://github.com/richardedden/Gannet3.0.git
 ENV MATLABPATH "${MFILES}/Gannet3.0:$MATLABPATH"
 
+## FID-A
+WORKDIR $MFILES
+RUN git clone https://github.com/CIC-methods/FID-A.git
+ENV MATLABPATH "${MFILES}/FID-A:$MATLABPATH"
 
 ## AFNI
 WORKDIR $DOWNLOADS
-RUN apt-get install -y gsl-bin netpbm r-base-core libnlopt-dev \
+RUN apt-get update && apt-get install -y gsl-bin netpbm r-base-core libnlopt-dev \
 libjpeg62 xvfb libglu1-mesa-dev libglw1-mesa libxm4 libnlopt0 && \
 	curl -O https://afni.nimh.nih.gov/pub/dist/bin/linux_ubuntu_16_64/@update.afni.binaries && \
 	tcsh @update.afni.binaries -package linux_ubuntu_16_64  \
@@ -101,6 +105,17 @@ RUN curl -O https://www.nitrc.org/frs/download.php/10085/DTIPrepTools-1.2.8-Linu
 	tar xzf DTIPrepTools-1.2.8-Linux.tar.gz && \
 	mv DTIPrep*/bin /usr/local/dtiprep
 ENV PATH "${PATH}:/usr/local/dtiprep"
+
+
+## TORTOISE
+WORKDIR $DOWNLOADS
+RUN curl -O http://birc-int.psy.uconn.edu/containers/deps/TORTOISE_V3.1.1_Linux.tar.gz && \
+	tar xzf TORTOISE_V3.1.1_Linux.tar.gz && \
+	mv TORTOISE_V3.1.1 /usr/local/TORTOISE && \
+	cd /usr/local/TORTOISE && \
+	chmod -R a+x .
+ENV PATH "/usr/local/TORTOISE/DIFFPREPV311/bin/bin:/usr/local/TORTOISE/DIFFCALC/DIFFCALCV311:/usr/local/TORTOISE/DRBUDDIV311/bin:/usr/local/TORTOISE/DRTAMASV311/bin:${PATH}" 
+
 
 
 ## FreeSurfer
@@ -186,20 +201,20 @@ RUN source activate poldrack && \
 RUN source deactivate 
 
 ## cpac
-RUN apt-get install -y libgraphviz-dev graphviz 
+RUN apt-get update && apt-get install -y libgraphviz-dev graphviz 
 RUN conda create -y -n cpac python=2.7 cython numpy scipy matplotlib networkx==1.11 traits pyyaml jinja2==2.7.2 nose ipython pip wxpython pandas graphviz pydot && \
 	source activate cpac && \
 	pip install lockfile pygraphviz nibabel nipype patsy psutil boto3 INDI-Tools future==0.15.2 prov simplejson fs==0.5.4
 #RUN source deactivate
 
 # R
-RUN apt-get install -y r-cran-ggplot2
+RUN apt-get update && apt-get install -y r-cran-ggplot2
 
 RUN Rscript -e 'install.packages(c("rstan", "MCMCglmm","mcmc", "MasterBayes"), repos = "https://cloud.r-project.org/", dependencies=TRUE)'
 
 # CUDA
 WORKDIR $DOWNLOADS
-RUN apt-get install kmod module-init-tools
+RUN apt-get update && apt-get install kmod module-init-tools
 
 RUN curl -L -O http://us.download.nvidia.com/XFree86/Linux-x86_64/375.26/NVIDIA-Linux-x86_64-375.26.run && \
 	chmod 755 NVIDIA-Linux-x86_64-375.26.run && \
@@ -219,7 +234,7 @@ ENV LD_LIBRARY_PATH /usr/local/cuda/lib64:${LD_LIBRARY_PATH}
 RUN conda install -y -c conda-forge awscli
 
 # VESPA
-RUN apt-get install -y fftw3 libfftw3-dev && \
+RUN apt-get update && apt-get install -y fftw3 libfftw3-dev && \
 conda create -y -n vespa -c conda-forge python=2.7 numpy scipy matplotlib==1.5.3 wxPython=3.0 packaging pydicom==0.9.9 && \
 source activate vespa && \
 conda install -y -c https://conda.anaconda.org/dgursoy pywavelets=0.3.0 && \
@@ -232,7 +247,7 @@ pip install pygamma hlsvdpro vespa-suite
 #mv gifti-1.6 ${MFILES}
 #ENV MATLABPATH "${MFILES}/gifti-1.6:${MATLABPATH}"
 
-RUN apt-get install -y r-cran-rgl
+RUN apt-get update && apt-get install -y r-cran-rgl
 RUN Rscript -e "install.packages('cifti',repos = 'https://cloud.r-project.org/', dependencies=TRUE)"
 
 # HCP Workbench
@@ -262,9 +277,14 @@ RUN Rscript -e "install.packages('solarius',repos = 'https://cloud.r-project.org
 
 
 # JAVA
-RUN apt-get install default-jre
+RUN apt-get update && apt-get install -y default-jre
 ENV MATLAB_JAVA /usr/lib/jvm/default-java/jre/
 ENV JAVA_HOME /usr/lib/jvm/default-java/jre/
+
+
+# Libs for DTIPrep
+RUN apt-get update && apt-get install -y libqtgui4 && \
+ln -s /usr/lib/x86_64-linux-gnu/libtiff.so.5 /usr/lib/x86_64-linux-gnu/libtiff.so.3
 
 
 # Cleanup
