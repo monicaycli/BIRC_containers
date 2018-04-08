@@ -17,28 +17,15 @@ export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=4	#<= cpus-per-task
 
 #Define user paths
 NETID=$USER
-PROJECT=test
+PROJECT=<project name>
 
-export DIR_BASE=/scratch/${NETID}/${PROJECT}
-export DIR_RESOURCES=${DIR_BASE}/resources 	#ro
-export DIR_DATA=${DIR_BASE}/data 				#rw data
-export DIR_DATAIN=${DIR_BASE}/data_in			#ro data
-export DIR_DATAOUT=${DIR_BASE}/data_out		#rw data
-export SUBJECTS_DIR=${DIR_BASE}/freesurfer		#rw for Freesurfer
-export DIR_WORK=/work							#rw /work on HPC is 40Gb local storage
-export DIR_SCRATCH=${DIR_BASE}/scratch 		#rw shared storage
-export DIR_SCRIPTS=${DIR_BASE}/scripts 		#ro, prepended to PATH
+# edit this file to customize paths
+source sbatch_env.sh
 
-
-# Load modules
-module load matlab/2017a				#matlab binaries are bound
-module load singularity/2.3.1-gcc		#required to run the container
-
-#set the matlab license path to the path inside the container
-export LM_LICENSE_FILE=/bind/matlablicense/uits.lic
+#load any extra modules
 
 #finally call the container with any arguments for the job
 #wrapper will bind the appropriate paths
 #environment variables are passed to the container
 
-./burc_wrapper.sh command
+./burc_wrapper.sh <executable path inside the container>
