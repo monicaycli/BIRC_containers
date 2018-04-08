@@ -17,7 +17,7 @@ export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=4	#<= cpus-per-task
 
 #Define user paths
 NETID=$USER
-PROJECT=test
+PROJECT=<project name>
 
 export DIR_BASE=/home/CAM/${NETID}/${PROJECT}
 export DIR_RESOURCES=${DIR_BASE}/resources 	#ro
@@ -32,7 +32,8 @@ export DIR_SCRIPTS=${DIR_BASE}/scripts 		#ro, prepended to PATH
 
 # Load modules
 module load matlab/R2017b				#matlab binaries are bound
-module load singularity/2.3.1		#required to run the container
+#module load singularity/2.3.1		#required to run the container
+module load singularity/2.4.2
 
 #set the matlab license path to the path inside the container
 #export LM_LICENSE_FILE=/bind/matlablicense/uits.lic
@@ -41,4 +42,5 @@ module load singularity/2.3.1		#required to run the container
 #wrapper will bind the appropriate paths
 #environment variables are passed to the container
 
-./burc_wrapper.sh command
+./burc_wrapper.sh <container path to executable>
+

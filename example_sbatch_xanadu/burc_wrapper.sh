@@ -12,7 +12,7 @@ singularity run  --bind $(dirname `which matlab`)/..:/bind/bin/matlab \
 --bind ${DIR_SCRATCH}:/bind/scratch \
 --bind ${DIR_WORK}:/bind/work \
 --bind ${DIR_SCRIPTS}:/bind/scripts \
-/home/CAM/${USER}/containers/bin/burc.img "$@"
+/home/CAM/${USER}/containers/burc/bin/burc.img "$@"
 
 #add this line to limit access to home and /tmp
 #--contain --workdir ${DIR_TMP} \
