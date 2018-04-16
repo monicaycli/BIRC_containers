@@ -16,8 +16,8 @@ export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=4	#<= cpus-per-task
 ##### END OF JOB DEFINITION  #####
 
 #Define user paths
-NETID=$USER
-PROJECT=<project name>
+export NETID=$USER
+export PROJECT=<project name>
 
 # edit this file to customize paths
 source sbatch_env.sh

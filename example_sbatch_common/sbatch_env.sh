@@ -4,8 +4,8 @@ export ONXANADU=0
   export ONXANADU=1
 fi
 
-if [ $ONXANADU]; then
-  export DIR_BASE=/home/CAM/${NETID}/${PROJECT}
+if [ $ONXANADU ]; then
+  export DIR_BASE=/home/CAM/${NETID}/projects/${PROJECT}
   export DIR_WORK=${DIR_BASE}/work
   # Load modules
   module load matlab/R2017b				#matlab binaries are bound
