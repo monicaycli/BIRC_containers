@@ -7,8 +7,8 @@ RUN echo "deb http://us.archive.ubuntu.com/ubuntu/ xenial universe" >> /etc/apt/
 
 RUN apt-get update && apt-get upgrade -y
 RUN apt-get update && apt-get install -y nano curl ed file tcsh git wget \
-	build-essential cmake pigz unzip pkg-config s3cmd s3fs \
-	bzip2 unzip libxml2-dev libxslt-dev bc 
+	build-essential pigz unzip pkg-config s3cmd s3fs \
+	bzip2 unzip libxml2-dev libxslt-dev bc libssl-dev
 
 #blas and lapack are only availble as static builds-container software will rely on these
 #Install the MPICH2 reference MPI implementation inside the container for builds
@@ -37,6 +37,13 @@ RUN mkdir $DOWNLOADS
 RUN mkdir /usr/local/share/matlab
 ENV MFILES "/usr/local/share/matlab"
 
+# recent cmake (required for ANTs/ITK)
+WORKDIR $DOWNLOADS
+RUN apt remove cmake && apt purge --auto-remove cmake
+RUN curl -L -O https://cmake.org/files/v3.11/cmake-3.11.4-Linux-x86_64.sh && \
+	mkdir /opt/cmake && \
+	sh cmake-3.11.4-Linux-x86_64.sh --prefix=/opt/cmake --skip-license && \
+	ln -s /opt/cmake/bin/cmake /usr/local/bin/cmake
 
 # Software
 
@@ -53,6 +60,7 @@ RUN git clone https://github.com/rordenlab/dcm2niix.git && \
     	cd dcm2niix && mkdir build && cd build && \
         cmake -DBATCH_VERSION=ON -DUSE_OPENJPEG=ON .. && \
         make && make install
+
 
 
 ## Tarquin
@@ -84,20 +92,31 @@ RUN curl https://afni.nimh.nih.gov/pub/dist/src/scripts_src/@add_rcran_ubuntu.tc
 
 ## FSL
 WORKDIR $DOWNLOADS
-ENV FSL_DIR /usr/local/fsl
+ENV FSLDIR /usr/local/fsl
 
 RUN curl -O https://fsl.fmrib.ox.ac.uk/fsldownloads/fslinstaller.py && \
 	chmod 755 fslinstaller.py && \
-	./fslinstaller.py -d ${FSL_DIR} -q 
+	./fslinstaller.py -d ${FSLDIR} -q 
 
-ENV MATLABPATH "${FSL_DIR}/etc/matlab/:${MATLABPATH}"
+ENV MATLABPATH "${FSLDIR}/etc/matlab/:${MATLABPATH}"
 
 RUN curl -O https://fsl.fmrib.ox.ac.uk/fsldownloads/patches/eddy-patch-fsl-5.0.11/centos6/eddy_cuda8.0 && \ 
 	chmod 755 eddy_cuda8.0 && \
-	mv eddy_cuda8.0 ${FSL_DIR}/bin && \
-	mv ${FSL_DIR}/bin/eddy_cuda ${FSL_DIR}/bin/eddy_cuda7.0 && \
-	ln -s ${FSL_DIR}/bin/eddy_cuda8.0 ${FSL_DIR}/bin/eddy_cuda
+	mv eddy_cuda8.0 ${FSLDIR}/bin && \
+	mv ${FSLDIR}/bin/eddy_cuda ${FSLDIR}/bin/eddy_cuda7.0 && \
+	ln -s ${FSLDIR}/bin/eddy_cuda8.0 ${FSLDIR}/bin/eddy_cuda
 
+ENV PATH "${PATH}:${FSLDIR}/bin"
+RUN . ${FSLDIR}/etc/fslconf/fsl.sh
+RUN ${FSLDIR}/etc/fslconf/fslpython_install.sh
+
+### eddy qc
+WORKDIR $DOWNLOADS
+RUN git clone https://git.fmrib.ox.ac.uk/matteob/eddy_qc_release.git && \
+	cd eddy_qc_release && \
+	fslpython setup.py install
+
+ENV PATH "${PATH}:/usr/local/fsl/fslpython/envs/fslpython/bin"
 
 ## DTIPrep
 WORKDIR $DOWNLOADS
@@ -180,6 +199,7 @@ ENV PATH "/usr/local/anaconda2/bin:${PATH}"
 RUN conda install --channel conda-forge -y nibabel pystan nipype pydicom
 RUN pip install git+https://github.com/moloney/dcmstack.git
 RUN pip install https://github.com/nipy/heudiconv/archive/master.zip
+RUN pip install https://github.com/cbedetti/Dcm2Bids/archive/master.zip
 
 RUN git clone https://github.com/jmtyszka/bidskit.git && mv bidskit /usr/local/
 ENV PATH "${PATH}":/usr/local/bidskit
@@ -210,7 +230,7 @@ RUN conda create -y -n cpac python=2.7 cython numpy scipy matplotlib networkx==1
 # R
 RUN apt-get update && apt-get install -y r-cran-ggplot2
 
-RUN Rscript -e 'install.packages(c("rstan", "MCMCglmm","mcmc", "MasterBayes"), repos = "https://cloud.r-project.org/", dependencies=TRUE)'
+RUN Rscript -e 'install.packages(c("rstan", "MCMCglmm","mcmc", "MasterBayes", "R.matlab", "oro.nifti", "neuRosim", "OpenMx"), repos = "https://cloud.r-project.org/", dependencies=TRUE)'
 
 # CUDA
 WORKDIR $DOWNLOADS
