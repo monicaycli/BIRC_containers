@@ -108,7 +108,7 @@ RUN curl -O https://fsl.fmrib.ox.ac.uk/fsldownloads/patches/eddy-patch-fsl-5.0.1
 
 ENV PATH "${PATH}:${FSLDIR}/bin"
 RUN . ${FSLDIR}/etc/fslconf/fsl.sh
-RUN ${FSLDIR}/etc/fslconf/fslpython_install.sh
+RUN ${FSLDIR}/etc/fslconf/fslpython_install.sh -f $FSLDIR -q
 
 ### eddy qc
 WORKDIR $DOWNLOADS
