@@ -2,6 +2,7 @@
 #entrypoint pre-initialization
 source /environment
 source $FREESURFER_HOME/SetUpFreeSurfer.sh
+. ${FSLDIR}/etc/fslconf/fsl.sh
 
 #matlab
 export PATH=/bind/bin/matlab/bin:"$PATH"
