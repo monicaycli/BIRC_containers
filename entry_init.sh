@@ -8,6 +8,7 @@ source ${FSLDIR}/etc/fslconf/fsl.sh
 export TMPDIR=/tmp
 export JOBLIB_TEMP_FOLDER=$TMPDIR
 source $FREESURFER_HOME/SetUpFreeSurfer.sh
+. ${FSLDIR}/etc/fslconf/fsl.sh
 
 #matlab
 export PATH=/bind/bin/matlab/bin:"$PATH"
