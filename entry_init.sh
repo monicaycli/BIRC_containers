@@ -1,6 +1,12 @@
 #!/bin/bash
 #entrypoint pre-initialization
 source /environment
+export FSLDIR=/usr/local/fsl
+
+source ${FSLDIR}/etc/fslconf/fsl.sh
+
+export TMPDIR=/tmp
+export JOBLIB_TEMP_FOLDER=$TMPDIR
 source $FREESURFER_HOME/SetUpFreeSurfer.sh
 
 #matlab
